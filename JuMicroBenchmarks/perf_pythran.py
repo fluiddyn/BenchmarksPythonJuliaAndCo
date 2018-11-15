@@ -10,6 +10,8 @@ from fluidpythran import cachedjit, used_by_cachedjit
 
 from perf import print_perf
 
+from fib import fib as fib_pythran
+
 ## fibonacci ##
 
 
@@ -142,15 +144,30 @@ if __name__ == "__main__":
 
     mintrials = 5
 
-    assert fib(20) == 6765
+    n = 20
+    assert fib(n) == 6765
     tmin = float("inf")
     for i in range(mintrials):
         t = time.time()
-        f = fib(20)
+        f = fib(n)
         t = time.time() - t
         if t < tmin:
             tmin = t
+    print("fib with fluidpythran:")
     print_perf("recursion_fibonacci", tmin)
+
+
+    assert fib_pythran(n) == 6765
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time.time()
+        f = fib_pythran(n)
+        t = time.time() - t
+        if t < tmin:
+            tmin = t
+    print("Now fib without fluidpythran:")
+    print_perf("recursion_fibonacci", tmin)
+
 
     tmin = float("inf")
     for i in range(mintrials):
