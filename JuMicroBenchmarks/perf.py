@@ -1,12 +1,8 @@
-# from numpy import *
 import numpy as np
-from numpy.random import rand, randn
-from numpy.linalg import matrix_power
 
-import time
-import random
+from time import time
 
-## fibonacci ##
+# fibonacci #
 
 
 def fib(n):
@@ -15,7 +11,7 @@ def fib(n):
     return fib(n - 1) + fib(n - 2)
 
 
-## quicksort ##
+# quicksort #
 
 
 def qsort_kernel(a, lo, hi):
@@ -39,11 +35,10 @@ def qsort_kernel(a, lo, hi):
     return a
 
 
-## randmatstat ##
-
-
-def randmatstat(t):
+def matrix_statistics(t):
     n = 5
+    randn = np.random.randn
+    matrix_power = np.linalg.matrix_power
     v = np.zeros(t)
     w = np.zeros(t)
     for i in range(t):
@@ -61,12 +56,32 @@ def randmatstat(t):
     return (np.std(v) / np.mean(v), np.std(w) / np.mean(w))
 
 
-## randmatmul ##
+def matrix_statistics_ones(t):
+    n = 5
+    matrix_power = np.linalg.matrix_power
+    v = np.zeros(t)
+    w = np.zeros(t)
+    for i in range(t):
+        a = b = c = d = np.ones((n, n))
+        P = np.concatenate((a, b, c, d), axis=1)
+        Q = np.concatenate(
+            (np.concatenate((a, b), axis=1), np.concatenate((c, d), axis=1)),
+            axis=0,
+        )
+        v[i] = np.trace(matrix_power(P.T @ P, 4))
+        w[i] = np.trace(matrix_power(Q.T @ Q, 4))
+    return (np.std(v) / np.mean(v), np.std(w) / np.mean(w))
 
 
-def randmatmul(n):
-    A = rand(n, n)
-    B = rand(n, n)
+def matrix_multiply(n):
+    A = np.random.rand(n, n)
+    B = np.random.rand(n, n)
+    return A @ B
+
+
+def matrix_multiply_ones(n):
+    A = np.ones((n, n))
+    B = np.ones((n, n))
     return A @ B
 
 
@@ -88,32 +103,33 @@ def mandel(z):
 
 
 def mandelperf():
-    r1 = [-2. + 0.1 * i for i in range(26)]
-    r2 = [-1. + 0.1 * i for i in range(21)]
+    r1 = [-2.0 + 0.1 * i for i in range(26)]
+    r2 = [-1.0 + 0.1 * i for i in range(21)]
     return [mandel(complex(r, i)) for r in r1 for i in r2]
 
 
 def pisum():
     sum = 0.0
-    for j in range(1, 501):
-        sum = 0.0
+    n = 500
+    for j in range(n):
         for k in range(1, 10001):
             sum += 1.0 / (k * k)
-    return sum
+    return sum/n
 
 
-#### Is this single threaded?
-# def pisumvec():
-#     return numpy.sum(1./(numpy.arange(1,10000)**2))
+def pisum_vec():
+    n = 500
+    s = 0.
+    a = np.arange(1, 10001)
+    for j in range(500):
+        s += np.sum(1./(a**2))
+    return s/n
 
 
 def parse_int(t):
-    for i in range(1, t):
-        n = random.randint(0, 2 ** 32 - 1)
+    for i in range(1, t + 1):
+        n = np.random.randint(0, 2 ** 32 - 1)
         s = hex(n)
-        # s = string(n, base = 16)
-        if s[-1] == "L":
-            s = s[0:-1]
         m = int(s, 16)
         assert m == n
     return n
@@ -125,32 +141,29 @@ def printfd(t):
             file.write(f"{i:d} {i+1:d}\n")
 
 
-
 def print_perf(name, time):
-    print(f"python, {name:20s} {time * 1000:8.3f} ms")
+    print(f"python, {name:30s} {time * 1000:8.3f} ms")
 
-
-## run tests ##
 
 if __name__ == "__main__":
 
-    mintrials = 5
+    mintrials = 10
 
     assert fib(20) == 6765
     tmin = float("inf")
     for i in range(mintrials):
-        t = time.time()
+        t = time()
         f = fib(20)
-        t = time.time() - t
+        t = time() - t
         if t < tmin:
             tmin = t
     print_perf("recursion_fibonacci", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):
-        t = time.time()
+        t = time()
         n = parse_int(1000)
-        t = time.time() - t
+        t = time() - t
         if t < tmin:
             tmin = t
     print_perf("parse_integers", tmin)
@@ -158,68 +171,89 @@ if __name__ == "__main__":
     assert sum(mandelperf()) == 14791
     tmin = float("inf")
     for i in range(mintrials):
-        t = time.time()
+        t = time()
         mandelperf()
-        t = time.time() - t
+        t = time() - t
         if t < tmin:
             tmin = t
     print_perf("userfunc_mandelbrot", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):
-        lst = [random.random() for i in range(1, 5000)]
-        t = time.time()
+        lst = np.random.random(5000)
+        t = time()
         qsort_kernel(lst, 0, len(lst) - 1)
-        t = time.time() - t
+        t = time() - t
         if t < tmin:
             tmin = t
     print_perf("recursion_quicksort", tmin)
 
-    assert abs(pisum() - 1.644834071848065) < 1e-6
+    assert abs(pisum() - 1.644_834_071_848_065) < 1e-6
     tmin = float("inf")
     for i in range(mintrials):
-        t = time.time()
+        t = time()
         pisum()
-        t = time.time() - t
+        t = time() - t
         if t < tmin:
             tmin = t
-    print_perf("iteration_pi_sum", tmin)
+    print_perf("pisum", tmin)
 
-    # assert abs(pisumvec()-1.644834071848065) < 1e-6
-    # tmin = float('inf')
-    # for i in range(mintrials):
-    #     t = time.time()
-    #     pisumvec()
-    #     t = time.time()-t
-    #     if t < tmin: tmin = t
-    # print_perf ("pi_sum_vec", tmin)
+    assert abs(pisum_vec() - 1.644_834_071_848_065) < 1e-6
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        pisum_vec()
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("pisum_vec", tmin)
 
-    (s1, s2) = randmatstat(1000)
+    (s1, s2) = matrix_statistics(1000)
     assert s1 > 0.5 and s1 < 1.0
     tmin = float("inf")
     for i in range(mintrials):
-        t = time.time()
-        randmatstat(1000)
-        t = time.time() - t
+        t = time()
+        matrix_statistics(1000)
+        t = time() - t
         if t < tmin:
             tmin = t
     print_perf("matrix_statistics", tmin)
 
+    (s1, s2) = matrix_statistics_ones(1000)
     tmin = float("inf")
     for i in range(mintrials):
-        t = time.time()
-        C = randmatmul(1000)
+        t = time()
+        matrix_statistics_ones(1000)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("matrix_statistics_ones", tmin)
+
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        C = matrix_multiply(1000)
         assert C[0, 0] >= 0
-        t = time.time() - t
+        t = time() - t
         if t < tmin:
             tmin = t
     print_perf("matrix_multiply", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):
-        t = time.time()
-        printfd(100000)
-        t = time.time() - t
+        t = time()
+        C = matrix_multiply_ones(1000)
+        assert C[0, 0] >= 0
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("matrix_multiply_ones", tmin)
+
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        printfd(100_000)
+        t = time() - t
         if t < tmin:
             tmin = t
     print_perf("print_to_file", tmin)

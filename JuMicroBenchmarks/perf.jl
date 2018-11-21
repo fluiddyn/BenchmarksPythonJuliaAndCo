@@ -10,6 +10,40 @@ import Compat.Sys
 
 include("./perfutil.jl")
 
+## slow pi series ##
+
+function pisum()
+    sum = 0.0
+    n = 500
+    for j = 1:n
+        for k = 1:10000
+            sum += 1.0/(k*k)
+        end
+    end
+    sum/n
+end
+
+@compat Test.@test abs(pisum()-1.644834071848065) < 1e-10
+@timeit pisum() "pisum" "Summation of a power series"
+
+
+
+## slow pi series, vectorized ##
+
+function pisum_vec()
+    s = 0.0
+    a = (1:10000.)
+    n = 500
+    for j = 1:n
+        s += sum(1 ./ (a.^2))
+    end
+    s / n
+end
+
+@compat Test.@test abs(pisum_vec()-1.644834071848065) < 1e-10
+@timeit pisum_vec() "pisum_vec" "Summation of a power series"
+
+
 ## recursive fib ##
 
 fib(n) = n < 2 ? n : fib(n-1) + fib(n-2)
@@ -93,36 +127,6 @@ sortperf(n) = qsort!(rand(n), 1, n)
 @compat Test.@test issorted(sortperf(5000))
 @timeit sortperf(5000) "recursion_quicksort" "Sorting of random numbers using quicksort"
 
-## slow pi series ##
-
-function pisum()
-    sum = 0.0
-    for j = 1:500
-        sum = 0.0
-        for k = 1:10000
-            sum += 1.0/(k*k)
-        end
-    end
-    sum
-end
-
-@compat Test.@test abs(pisum()-1.644834071848065) < 1e-12
-@timeit pisum() "iteration_pi_sum" "Summation of a power series"
-
-## slow pi series, vectorized ##
-
-function pisumvec()
-    s = 0.0
-    a = [1:10000]
-    for j = 1:500
-        s = sum(1 ./ (a.^2))
-    end
-    s
-end
-
-#@test abs(pisumvec()-1.644834071848065) < 1e-12
-#@timeit pisumvec() "pi_sum_vec"
-
 ## random matrix statistics ##
 
 function randmatstat(t)
@@ -151,9 +155,36 @@ end
 @compat Test.@test 0.5 < s1 < 1.0 && 0.5 < s2 < 1.0
 @timeit randmatstat(1000) "matrix_statistics" "Statistics on a random matrix"
 
+
+function randmatstat_ones(t)
+    n = 5
+    v = zeros(t)
+    w = zeros(t)
+    for i=1:t
+        a = ones(n,n)
+        b = ones(n,n)
+        c = ones(n,n)
+        d = ones(n,n)
+        P = [a b c d]
+        Q = [a b; c d]
+        @static if VERSION >= v"0.7.0"
+            v[i] = LinearAlgebra.tr((P'*P)^4)
+            w[i] = LinearAlgebra.tr((Q'*Q)^4)
+        else
+            v[i] = trace((P'*P)^4)
+            w[i] = trace((Q'*Q)^4)
+        end
+    end
+    @compat return (Statistics.std(v)/Statistics.mean(v), Statistics.std(w)/Statistics.mean(w))
+end
+
+@timeit randmatstat_ones(1000) "matrix_statistics_ones" "Statistics on a random matrix"
+
 ## largish random number gen & matmul ##
 
 @timeit rand(1000,1000)*rand(1000,1000) "matrix_multiply" "Multiplication of random matrices"
+
+@timeit ones(1000,1000)*ones(1000,1000) "matrix_multiply_ones" "Multiplication of ones matrices"
 
 ## printfd ##
 

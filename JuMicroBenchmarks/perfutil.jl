@@ -67,7 +67,7 @@ macro output_timings(t,name,desc,group)
         if codespeed
             submit_to_codespeed( $t, $name, $desc, "seconds", test_group )
         elseif print_output
-            @compat Printf.@printf "julia,%20s %8.3f,  %f,%f,%f\n" $name minimum($t) maximum($t) Statistics.mean($t) Statistics.std($t)
+            @compat Printf.@printf "julia,%30s %8.3f ms, %8.3f, %8.3f, %8.3f\n" $name minimum($t) maximum($t) Statistics.mean($t) Statistics.std($t)
         end
         GC.gc()
     end

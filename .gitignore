@@ -14,3 +14,7 @@ gp*
 .ipynb_checkpoints
 *.sage.py
 TAGS
+
+JuMicroBenchmarks/.dummy
+JuMicroBenchmarks/output_*.txt
+**/.vscode
