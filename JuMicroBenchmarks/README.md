@@ -42,7 +42,7 @@ Pythran and Julia have usually very similar performance.
 
 We see that the random generation (involved in matrix_statistics and
 matrix_multiply) is very fast in Julia. Julia and Numpy do not use the same
-random generator...
+random generator... See https://github.com/serge-sans-paille/pythran/issues/759
 
 There is a real performance issue for Pythran for matrix multiplication (here,
 the shape is (1000, 1000))! It's nearly 10 times slower than with Numpy!

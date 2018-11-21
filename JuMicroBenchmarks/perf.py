@@ -142,7 +142,7 @@ def printfd(t):
 
 
 def print_perf(name, time):
-    print(f"python, {name:30s} {time * 1000:8.3f} ms")
+    print(f"python, {name:30s} {time * 1000:8.3f} ms", flush=True)
 
 
 if __name__ == "__main__":
@@ -176,7 +176,7 @@ if __name__ == "__main__":
         t = time() - t
         if t < tmin:
             tmin = t
-    print_perf("userfunc_mandelbrot", tmin)
+    print_perf("mandelbrot", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):

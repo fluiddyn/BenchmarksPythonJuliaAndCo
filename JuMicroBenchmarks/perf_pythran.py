@@ -44,6 +44,7 @@ mandelperf = cachedjit(mandelperf)
 
 parse_int = cachedjit(parse_int)
 
+# Pythran does not support format and f-strings
 # printfd = cachedjit(printfd)
 
 
@@ -91,7 +92,7 @@ if __name__ == "__main__":
         t = time() - t
         if t < tmin:
             tmin = t
-    print_perf("userfunc_mandelbrot", tmin)
+    print_perf("mandelbrot", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):

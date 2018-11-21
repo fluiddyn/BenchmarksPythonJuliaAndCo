@@ -101,7 +101,7 @@ end
 
 mandelperf() = [ mandel(complex(r,i)) for i=-1.:.1:1., r=-2.0:.1:0.5 ]
 @compat Test.@test sum(mandelperf()) == 14791
-@timeit mandelperf() "userfunc_mandelbrot" "Calculation of mandelbrot set"
+@timeit mandelperf() "mandelbrot" "Calculation of mandelbrot set"
 
 ## numeric vector sort ##
 
