@@ -26,16 +26,17 @@ You should get something like this:
 
 ```
                          | python/julia | pythran/julia | pythran/python |
-recursion_fibonacci      |      76.51   |      1.23     |      0.02      |
-parse_integers           |      12.31   |      3.42     |      0.28      |
-userfunc_mandelbrot      |      82.65   |      1.06     |      0.01      |
-recursion_quicksort      |      53.98   |      1.13     |      0.02      |
 pisum                    |      17.64   |      1.00     |      0.06      |
-pisum_vec                |       1.12   |      0.93     |      0.84      |
-matrix_statistics        |       6.41   |      3.14     |      0.49      |
-matrix_statistics_ones   |       6.12   |      1.58     |      0.26      |
-matrix_multiply          |       1.88   |     18.43     |      9.80      |
-matrix_multiply_ones     |       1.01   |      9.84     |      9.76      |
+pisum_vec                |       1.10   |      0.94     |      0.85      |
+recursion_fibonacci      |      66.64   |      1.04     |      0.02      |
+recursion_quicksort      |      54.94   |      1.11     |      0.02      |
+mandelbrot               |      83.79   |      1.06     |      0.01      |
+parse_integers           |      12.17   |      3.33     |      0.27      |
+matrix_statistics        |       6.38   |      3.16     |      0.50      |
+matrix_statistics_ones   |       6.19   |      1.58     |      0.26      |
+matrix_multiply          |       1.96   |     19.95     |     10.17      |
+matrix_multiply_ones     |       1.02   |     10.61     |     10.41      |
+
 ```
 
 Pythran and Julia have usually very similar performance.
