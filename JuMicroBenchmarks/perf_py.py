@@ -85,6 +85,10 @@ def matrix_multiply_ones(n):
     return A @ B
 
 
+def bench_random(n: int):
+    return np.random.rand(n, n)
+
+
 ## mandelbrot ##
 
 
@@ -248,6 +252,16 @@ if __name__ == "__main__":
         if t < tmin:
             tmin = t
     print_perf("matrix_multiply_ones", tmin)
+
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        C = bench_random(1000)
+        assert C[0, 0] >= 0
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("random", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):

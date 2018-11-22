@@ -18,3 +18,5 @@ TAGS
 JuMicroBenchmarks/.dummy
 JuMicroBenchmarks/output_*.txt
 **/.vscode
+
+**/__pythran__/*

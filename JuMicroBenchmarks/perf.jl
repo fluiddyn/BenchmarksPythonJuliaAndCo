@@ -186,6 +186,8 @@ end
 
 @timeit ones(1000,1000)*ones(1000,1000) "matrix_multiply_ones" "Multiplication of ones matrices"
 
+@timeit rand(1000,1000) "random" "random generation"
+
 ## printfd ##
 
 @compat if Sys.isunix()

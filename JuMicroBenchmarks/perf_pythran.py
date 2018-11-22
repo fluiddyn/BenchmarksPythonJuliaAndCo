@@ -4,9 +4,9 @@ import numpy as np
 
 # pythran import numpy as np
 
-from fluidpythran import cachedjit, used_by_cachedjit
+from fluidpythran import cachedjit, used_by_cachedjit, pythran_def
 
-from perf import (
+from perf_py import (
     print_perf,
     fib,
     qsort_kernel,
@@ -14,6 +14,7 @@ from perf import (
     matrix_statistics_ones,
     matrix_multiply,
     matrix_multiply_ones,
+    bench_random,
     pisum,
     pisum_vec,
     parse_int,
@@ -34,6 +35,8 @@ matrix_statistics_ones = cachedjit(matrix_statistics_ones)
 
 matrix_multiply = cachedjit(matrix_multiply)
 matrix_multiply_ones = cachedjit(matrix_multiply_ones)
+bench_random_aot = pythran_def(bench_random)
+bench_random = cachedjit(bench_random)
 
 pisum = cachedjit(pisum)
 pisum_vec = cachedjit(pisum_vec)
@@ -164,6 +167,26 @@ if __name__ == "__main__":
         if t < tmin:
             tmin = t
     print_perf("matrix_multiply_ones", tmin)
+
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        C = bench_random(1000)
+        assert C[0, 0] >= 0
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("random", tmin)
+
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        C = bench_random_aot(1000)
+        assert C[0, 0] >= 0
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("random", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):
