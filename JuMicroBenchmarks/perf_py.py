@@ -112,6 +112,19 @@ def mandelperf():
     return [mandel(complex(r, i)) for r in r1 for i in r2]
 
 
+def mandelperf2():
+    r1 = -2. + 0.1*np.arange(26)
+    r2 = -1. + 0.1*np.arange(21)
+    result = np.empty(r1.size*r2.size)
+    ind = 0
+    for r in r1:
+        for i in r2:
+            result[ind] = mandel(complex(r, i))
+            ind += 1
+
+    return result
+
+
 def pisum():
     sum = 0.0
     n = 500
@@ -181,6 +194,16 @@ if __name__ == "__main__":
         if t < tmin:
             tmin = t
     print_perf("mandelbrot", tmin)
+
+    assert sum(mandelperf2()) == 14791
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        mandelperf2()
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("mandelbrot2", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):

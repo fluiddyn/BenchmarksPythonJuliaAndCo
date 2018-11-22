@@ -22,6 +22,7 @@ from perf_py import (
     abs2,
     mandel,
     mandelperf,
+    mandelperf2,
 )
 
 from fib import fib as fib_pythran
@@ -44,6 +45,11 @@ pisum_vec = cachedjit(pisum_vec)
 used_by_cachedjit("mandelperf")(abs2)
 used_by_cachedjit("mandelperf")(mandel)
 mandelperf = cachedjit(mandelperf)
+
+used_by_cachedjit("mandelperf2")(abs2)
+used_by_cachedjit("mandelperf2")(mandel)
+mandelperf2 = cachedjit(mandelperf2)
+
 
 parse_int = cachedjit(parse_int)
 
@@ -92,6 +98,16 @@ if __name__ == "__main__":
     for i in range(mintrials):
         t = time()
         mandelperf()
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("mandelbrot0", tmin)
+
+    assert sum(mandelperf2()) == 14791
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        mandelperf2()
         t = time() - t
         if t < tmin:
             tmin = t
