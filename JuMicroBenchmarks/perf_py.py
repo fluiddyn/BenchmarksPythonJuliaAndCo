@@ -89,6 +89,9 @@ def bench_random(n: int):
     return np.random.rand(n, n)
 
 
+def broadcast(a):
+    return 10 * (2*a**2 + 4*a**3) + 2 / a
+
 ## mandelbrot ##
 
 
@@ -256,6 +259,8 @@ if __name__ == "__main__":
             tmin = t
     print_perf("matrix_statistics_ones", tmin)
 
+    mintrials = 10
+
     tmin = float("inf")
     for i in range(mintrials):
         t = time()
@@ -285,6 +290,18 @@ if __name__ == "__main__":
         if t < tmin:
             tmin = t
     print_perf("random", tmin)
+
+
+    tmin = float("inf")
+    a = np.ones((1000, 1000))
+    for i in range(mintrials):
+        t = time()
+        broadcast(a)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("broadcast", tmin)
+
 
     tmin = float("inf")
     for i in range(mintrials):

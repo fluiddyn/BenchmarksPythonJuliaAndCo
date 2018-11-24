@@ -9,7 +9,8 @@ names = [
     "matrix_statistics_ones",
     "matrix_multiply",
     "matrix_multiply_ones",
-    "random"
+    "random",
+    "broadcast",
 ]
 
 tools = ["julia", "python", "pythran"]

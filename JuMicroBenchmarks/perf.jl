@@ -188,6 +188,13 @@ end
 
 @timeit rand(1000,1000) "random" "random generation"
 
+function my_multi_broadcast(a)
+    10 * (2*a.^2 + 4*a.^3) + 2 ./ a
+end
+
+a = ones(1000,1000)
+@timeit my_multi_broadcast(a) "broadcast" "broadcast"
+
 ## printfd ##
 
 @compat if Sys.isunix()

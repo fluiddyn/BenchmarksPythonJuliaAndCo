@@ -23,6 +23,7 @@ from perf_py import (
     mandel,
     mandelperf,
     mandelperf2,
+    broadcast,
 )
 
 from fib import fib as fib_pythran
@@ -36,6 +37,7 @@ matrix_statistics_ones = cachedjit(matrix_statistics_ones)
 
 matrix_multiply = cachedjit(matrix_multiply)
 matrix_multiply_ones = cachedjit(matrix_multiply_ones)
+broadcast = cachedjit(broadcast)
 bench_random_aot = pythran_def(bench_random)
 bench_random = cachedjit(bench_random)
 
@@ -183,6 +185,16 @@ if __name__ == "__main__":
         if t < tmin:
             tmin = t
     print_perf("matrix_multiply_ones", tmin)
+
+    tmin = float("inf")
+    a = np.ones((1000, 1000))
+    for i in range(mintrials):
+        t = time()
+        broadcast(a)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("broadcast", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):
