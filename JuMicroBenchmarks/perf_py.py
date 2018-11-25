@@ -152,7 +152,7 @@ def pisum_vec():
 
 
 def parse_int(t):
-    for i in range(1, t + 1):
+    for i in range(t):
         n = np.random.randint(0, 2 ** 32 - 1)
         s = hex(n)
         m = int(s, 16)
