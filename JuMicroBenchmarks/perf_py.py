@@ -5,7 +5,7 @@ from time import time
 # fibonacci #
 
 
-def fib(n):
+def fib(n: int):
     if n < 2:
         return n
     return fib(n - 1) + fib(n - 2)
@@ -91,6 +91,11 @@ def bench_random(n: int):
 
 def broadcast(a):
     return 10 * (2*a**2 + 4*a**3) + 2 / a
+
+
+def broadcast_inplace(a):
+    a[:] = 10 * (2*a**2 + 4*a**3) + 2 / a
+
 
 ## mandelbrot ##
 
@@ -291,7 +296,6 @@ if __name__ == "__main__":
             tmin = t
     print_perf("random", tmin)
 
-
     tmin = float("inf")
     a = np.ones((1000, 1000))
     for i in range(mintrials):
@@ -302,6 +306,15 @@ if __name__ == "__main__":
             tmin = t
     print_perf("broadcast", tmin)
 
+    tmin = float("inf")
+    for i in range(mintrials):
+        a = np.ones((1000, 1000))
+        t = time()
+        broadcast_inplace(a)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("broadcast_inplace", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):

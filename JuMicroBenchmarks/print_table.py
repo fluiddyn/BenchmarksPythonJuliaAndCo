@@ -4,13 +4,14 @@ names = [
     "recursion_fibonacci",
     "recursion_quicksort",
     "mandelbrot",
+    "matrix_statistics_ones",
+    "matrix_multiply_ones",
+    "broadcast",
+    "broadcast_inplace",
+    "random",
     "parse_integers",
     "matrix_statistics",
-    "matrix_statistics_ones",
     "matrix_multiply",
-    "matrix_multiply_ones",
-    "random",
-    "broadcast",
 ]
 
 tools = ["julia", "python", "pythran"]
@@ -55,5 +56,5 @@ for name in names:
     t_pythran = times_pythran[name]
 
     print(
-        f"{name:25s}|      {t_python/t_ju:5.2f}   |     {t_pythran/t_ju:5.2f}     |     {t_pythran/t_python:5.2f}      |"
+        f"{name:25s}|     {t_python/t_ju:6.2f}   |     {t_pythran/t_ju:5.2f}     |     {t_pythran/t_python:5.2f}      |"
     )
