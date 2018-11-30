@@ -40,7 +40,7 @@ For other microbenchmarks Python is slow or very slow.
 
 Pythran is slower than Julia for random number generation and for the
 benchmark called parse_integers (`int(hex(n), 16)`), which may not be not so
-important for scientific computing).
+important for scientific computing.
 
 For the 2 last benchmarks, Pythran is slightly slower than Julia because of
 slower random generation. For pure `matrix_statistics`, Pythran is actually
@@ -55,7 +55,7 @@ measure "only one micro-task", but [random generation + the micro-task]. It
 should be better to get a random generation benchmark and to avoid random
 generation in other benchmarks...
 
-For Python (without Pythran), we used the package randomgen to get faster
+For Python (without Pythran), we use the package randomgen to get faster
 random generation that with numpy.random.
 
 On the other hand, Pythran is nearly twice as fast as Julia for complex
@@ -77,6 +77,8 @@ syntax is very interesting for scientific computing.
    problem as long as we have good tools (for example Pythran) to speed-up these
    parts. Then, the overall program will not be slow.
 
+### Two scientists using open-source
+
 - *Pure Python is much slower than Julia!*
 
 - *Yes, but Python-Numpy code can be boosted to get very good performance...*
@@ -84,6 +86,8 @@ syntax is very interesting for scientific computing.
 - *Ok, but Julia has multiple dispatch and funky syntaxes!*
 
 - *Python also has cool language features and libraries! Anyway, I need to be good at Python for doing so many things.*
+
+So Python, C++ and Julia (and other languages) are complementary for scientific computing.
 
 ### Notes
 
