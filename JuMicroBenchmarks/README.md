@@ -14,38 +14,6 @@ Then, to run the benchmark:
 make print_table
 ```
 
-At the end, you should get something like this:
-
-```
-
-```
-
-Note that Pythran is configured with `~/.pythranrc`:
-
-```
-[pythran]
-complex_hook=True
-
-[compiler]
-blas=openblas
-CXX = clang++-6.0
-CC = clang-6.0
-```
-
-Pythran and Julia have usually very similar performance.
-
-We see that the random generation (involved in matrix_statistics and
-matrix_multiply) is very fast in Julia. Julia and Numpy do not use the same
-random generator... See https://github.com/serge-sans-paille/pythran/issues/759
-
-For Python (without Pythran), we used the package randomgen to get faster
-random generation that with numpy.random.
-
-Julia micro-benchmarks are not very well written because they do not really
-measure "micro-tasks", but [random generation + the micro-task]. It should be
-better to get a random generation benchmark and to avoid random generation in
-other benchmarks (which is very easy).
-
 I got
 
 ```
@@ -80,6 +48,18 @@ For the 2 last benchmarks, Pythran is slightly slower than Julia because of
 slower random generation. For pure `matrix_statistics`, Pythran is actually
 slightly faster than Julia.
 
+We see that the random generation (involved in matrix_statistics and
+matrix_multiply) is very fast in Julia. Julia and Numpy do not use the same
+random generator... See https://github.com/serge-sans-paille/pythran/issues/759
+
+For Python (without Pythran), we used the package randomgen to get faster
+random generation that with numpy.random.
+
+Julia micro-benchmarks are not very well written because they do not really
+measure "micro-tasks", but [random generation + the micro-task]. It should be
+better to get a random generation benchmark and to avoid random generation in
+other benchmarks (which is very easy).
+
 ### Three concluding remarks
 
 1. Pythran performs a 3-step compilation (high level Python -> optimized
@@ -101,3 +81,17 @@ slightly faster than Julia.
 - *Ok, but Julia has multiple dispatch and funky syntaxes!*
 
 - *Python also has cool language features and libraries! Anyway, I need to be good at Python for doing so many things.*
+
+### Notes
+
+Pythran is configured with `~/.pythranrc`:
+
+```
+[pythran]
+complex_hook=True
+
+[compiler]
+blas=openblas
+CXX = clang++-6.0
+CC = clang-6.0
+```
