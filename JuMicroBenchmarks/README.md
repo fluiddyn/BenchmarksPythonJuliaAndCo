@@ -35,30 +35,33 @@ matrix_multiply_rand     |       1.27   |      1.50     |      0.85      |
 
 Julia and Pythran have very similar performances.
 
-Pythran is slower than Julia for random number generation and for the benchmark
-called parse_integers (`int(hex(n), 16)`, which may not be not so important for
-scientific computing).
+Python with Numpy is very good for simple matrix multiplication and pisum_vec.
+For other microbenchmarks Python is slow or very slow.
 
-On the other hand, Pythran is (nearly twice) faster than Julia for complex
-broadcasting operations (here `10 * (2*a**2 + 4*a**3) + 2 / a`). Being able to
-be very fast for such operations with such readable (and dimension independent)
-syntax is very interesting for scientific computing.
+Pythran is slower than Julia for random number generation and for the
+benchmark called parse_integers (`int(hex(n), 16)`), which may not be not so
+important for scientific computing).
 
 For the 2 last benchmarks, Pythran is slightly slower than Julia because of
 slower random generation. For pure `matrix_statistics`, Pythran is actually
 slightly faster than Julia.
 
-We see that the random generation (involved in matrix_statistics and
-matrix_multiply) is very fast in Julia. Julia and Numpy do not use the same
-random generator... See https://github.com/serge-sans-paille/pythran/issues/759
+We see that the random generation (also involved in matrix_statistics and
+matrix_multiply) is very fast in Julia. Julia, Pythran and Numpy do not use the
+same random generators...
+
+Julia micro-benchmarks are not very well written because they do not really
+measure "only one micro-task", but [random generation + the micro-task]. It
+should be better to get a random generation benchmark and to avoid random
+generation in other benchmarks...
 
 For Python (without Pythran), we used the package randomgen to get faster
 random generation that with numpy.random.
 
-Julia micro-benchmarks are not very well written because they do not really
-measure "micro-tasks", but [random generation + the micro-task]. It should be
-better to get a random generation benchmark and to avoid random generation in
-other benchmarks (which is very easy).
+On the other hand, Pythran is nearly twice as fast as Julia for complex
+broadcasting operations (here `10 * (2*a**2 + 4*a**3) + 2 / a`). Being able to
+be very fast for such operations with such readable (and dimension independent)
+syntax is very interesting for scientific computing.
 
 ### Three concluding remarks
 
