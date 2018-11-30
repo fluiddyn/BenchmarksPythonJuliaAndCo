@@ -8,10 +8,10 @@ names = [
     "matrix_multiply_ones",
     "broadcast",
     "broadcast_inplace",
+    "parse_integers_rand",
     "random",
-    "parse_integers",
-    "matrix_statistics",
-    "matrix_multiply",
+    "matrix_statistics_rand",
+    "matrix_multiply_rand",
 ]
 
 tools = ["julia", "python", "pythran"]
@@ -48,7 +48,7 @@ times_python = times_tools["python"]
 times_pythran = times_tools["pythran"]
 
 
-print(f"{'':25s}| python/julia | pythran/julia | pythran/python |")
+print(f"{'':25s}| python/julia | pythran/julia | python/pythran |")
 
 for name in names:
     t_ju = times_ju[name]
@@ -56,5 +56,5 @@ for name in names:
     t_pythran = times_pythran[name]
 
     print(
-        f"{name:25s}|     {t_python/t_ju:6.2f}   |     {t_pythran/t_ju:5.2f}     |     {t_pythran/t_python:5.2f}      |"
+        f"{name:25s}|     {t_python/t_ju:6.2f}   |     {t_pythran/t_ju:5.2f}     |     {t_python/t_pythran:5.2f}      |"
     )

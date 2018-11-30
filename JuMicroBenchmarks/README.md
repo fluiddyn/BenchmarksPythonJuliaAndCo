@@ -1,19 +1,11 @@
-# Julia micro benchmarks
+# Modified Julia micro benchmarks
 
 See the [Julia web page](https://julialang.org/benchmarks/).
-
-with few modifications...
 
 For the Pythran benchmark, we use FluidPythran. Install with:
 
 ```
 pip install pythran fluidpythran
-```
-
-Since the Pythran cached JIT can be slow. It is better to warm it up before the benchmark... Run
-
-```
-make cachedjit
 ```
 
 Then, to run the benchmark:
@@ -22,23 +14,22 @@ Then, to run the benchmark:
 make print_table
 ```
 
-You should get something like this:
+At the end, you should get something like this:
 
 ```
-                         | python/julia | pythran/julia | pythran/python |
-pisum                    |      17.65   |      1.00     |      0.06      |
-pisum_vec                |       1.09   |      0.93     |      0.86      |
-recursion_fibonacci      |      78.68   |      1.24     |      0.02      |
-recursion_quicksort      |      54.94   |      1.11     |      0.02      |
-mandelbrot               |      84.93   |      0.94     |      0.01      |
-matrix_statistics_ones   |       5.87   |      1.60     |      0.27      |
-matrix_multiply_ones     |       1.01   |     10.60     |     10.50      |
-broadcast                |      15.21   |      0.53     |      0.03      |
-broadcast_inplace        |      15.08   |      0.51     |      0.03      |
-random                   |       7.50   |     67.12     |      8.95      |
-parse_integers           |      11.56   |      3.30     |      0.29      |
-matrix_statistics        |       6.11   |      3.15     |      0.52      |
-matrix_multiply          |       1.96   |     19.90     |     10.16      |
+
+```
+
+Note that Pythran is configured with `~/.pythranrc`:
+
+```
+[pythran]
+complex_hook=True
+
+[compiler]
+blas=openblas
+CXX = clang++-6.0
+CC = clang-6.0
 ```
 
 Pythran and Julia have usually very similar performance.
@@ -47,60 +38,66 @@ We see that the random generation (involved in matrix_statistics and
 matrix_multiply) is very fast in Julia. Julia and Numpy do not use the same
 random generator... See https://github.com/serge-sans-paille/pythran/issues/759
 
-There is a real performance issue for Pythran for matrix multiplication (here,
-the shape is (1000, 1000))! It's nearly 10 times slower than with Numpy!
+For Python (without Pythran), we used the package randomgen to get faster
+random generation that with numpy.random.
 
-The solution was to change the blas library used by Pythran. With `blas=mkl`,
-i.e. a file `~/.pythranrc` containing
-
-```
-[pythran]
-complex_hook=True
-
-[compiler]
-blas=mkl
-CXX = clang++-6.0
-CC = clang-6.0
-```
+Julia micro-benchmarks are not very well written because they do not really
+measure "micro-tasks", but [random generation + the micro-task]. It should be
+better to get a random generation benchmark and to avoid random generation in
+other benchmarks (which is very easy).
 
 I got
 
 ```
-                         | python/julia | pythran/julia | pythran/python |
-pisum                    |      17.65   |      1.00     |      0.06      |
-pisum_vec                |       1.09   |      0.93     |      0.86      |
-recursion_fibonacci      |      78.68   |      1.26     |      0.02      |
-recursion_quicksort      |      54.94   |      1.13     |      0.02      |
-mandelbrot               |      84.93   |      0.94     |      0.01      |
-matrix_statistics_ones   |       5.87   |      2.29     |      0.39      |
-matrix_multiply_ones     |       1.01   |      1.03     |      1.02      |
-broadcast                |      15.21   |      0.53     |      0.03      |
-broadcast_inplace        |      15.08   |      0.51     |      0.03      |
-random                   |       7.50   |     67.11     |      8.94      |
-parse_integers           |      11.56   |      3.31     |      0.29      |
-matrix_statistics        |       6.11   |      3.79     |      0.62      |
-matrix_multiply          |       1.96   |     10.70     |      5.46      |
+                         | python/julia | pythran/julia | python/pythran |
+pisum                    |      17.89   |      1.00     |     17.98      |
+pisum_vec                |       1.12   |      0.94     |      1.20      |
+recursion_fibonacci      |      62.12   |      1.00     |     62.12      |
+recursion_quicksort      |      54.98   |      1.12     |     49.03      |
+mandelbrot               |      87.42   |      0.93     |     94.05      |
+matrix_statistics_ones   |       6.41   |      0.91     |      7.02      |
+matrix_multiply_ones     |       1.01   |      0.99     |      1.02      |
+broadcast                |      15.02   |      0.55     |     27.10      |
+broadcast_inplace        |      15.03   |      0.51     |     29.27      |
+parse_integers_rand      |       3.55   |      3.42     |      1.04      |
+random                   |       2.75   |      4.44     |      0.62      |
+matrix_statistics_rand   |       6.59   |      1.31     |      5.05      |
+matrix_multiply_rand     |       1.27   |      1.50     |      0.85      |
 ```
 
-With `blas=openblas`:
+Julia and Pythran have very similar performances.
 
-```
-                         | python/julia | pythran/julia | pythran/python |
-pisum                    |      17.67   |      1.00     |      0.06      |
-pisum_vec                |       1.08   |      0.94     |      0.86      |
-recursion_fibonacci      |      71.31   |      1.14     |      0.02      |
-recursion_quicksort      |      55.27   |      1.10     |      0.02      |
-mandelbrot               |      82.54   |      0.93     |      0.01      |
-matrix_statistics_ones   |       5.99   |      0.95     |      0.16      |
-matrix_multiply_ones     |       1.01   |      0.99     |      0.98      |
-broadcast                |      15.32   |      0.53     |      0.03      |
-broadcast_inplace        |      15.18   |      0.52     |      0.03      |
-random                   |       7.50   |     67.06     |      8.94      |
-parse_integers           |      11.90   |      3.36     |      0.28      |
-matrix_statistics        |       6.06   |      2.57     |      0.42      |
-matrix_multiply          |       1.97   |     11.37     |      5.78      |
-```
+Pythran is slower than Julia for random number generation and for the benchmark
+called parse_integers (`int(hex(n), 16)`, which may not be not so important for
+scientific computing).
 
-There is a real performance issue for Pythran for random generation (Pythran
-~10 times slower than Numpy) which slow down many benchmarks (parse_integers,
-matrix_statistics, matrix_multiply, random).
+On the other hand, Pythran is (nearly twice) faster than Julia for complex
+broadcasting operations (here `10 * (2*a**2 + 4*a**3) + 2 / a`). Being able to
+be very fast for such operations with such readable (and dimension independent)
+syntax is very interesting for scientific computing.
+
+For the 2 last benchmarks, Pythran is slightly slower than Julia because of
+slower random generation. For pure `matrix_statistics`, Pythran is actually
+slightly faster than Julia.
+
+### Three concluding remarks
+
+1. Pythran performs a 3-step compilation (high level Python -> optimized
+   Python, optimized Python -> C++ and finally C++ compilation). We don't see the
+   benefice of the high level Python -> Python optimization with such very simple
+   cases...
+
+2. Julia is overall very fast, with a fast JIT. It's impressive.
+
+3. For (data) scientists, the bad performance of Python for computational tasks
+   (such as fibonacci, quicksort, mandelbrot, or even broadcast) is not so much a
+   problem as long as we have good tools (for example Pythran) to speed-up these
+   parts. Then, the overall program will not be slow.
+
+- *Pure Python is much slower than Julia!*
+
+- *Yes, but Python-Numpy code can be boosted to get very good performance...*
+
+- *Ok, but Julia has multiple dispatch and funky syntaxes!*
+
+- *Python also has cool language features and libraries! Anyway, I need to be good at Python for doing so many things.*

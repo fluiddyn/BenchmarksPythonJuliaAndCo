@@ -53,7 +53,7 @@ fib(n) = n < 2 ? n : fib(n-1) + fib(n-2)
 
 ## parse integer ##
 
-function parseintperf(t)
+function parseintperf_rand(t)
     local n, m
     for i=1:t
         n = rand(UInt32)
@@ -69,7 +69,26 @@ function parseintperf(t)
     return n
 end
 
-@timeit parseintperf(1000) "parse_integers" "Integer parsing"
+@timeit parseintperf_rand(1000) "parse_integers_rand" "Integer parsing"
+
+function parseintperf(numbers)
+    local n, m
+    for n in numbers
+        @static if VERSION >= v"0.7.0-DEV.4446"
+            s = string(n, base = 16)
+            m = UInt32(parse(Int64, s, base = 16))
+        else
+            s = hex(n)
+            m = UInt32(parse(Int64, s, 16))
+        end
+        @assert m == n
+    end
+    return numbers[end]
+end
+
+numbers = rand(UInt32, 1000)
+
+@timeit parseintperf(numbers) "parse_integers" "Integer parsing"
 
 ## array constructors ##
 
@@ -153,7 +172,7 @@ end
 
 (s1, s2) = randmatstat(1000)
 @compat Test.@test 0.5 < s1 < 1.0 && 0.5 < s2 < 1.0
-@timeit randmatstat(1000) "matrix_statistics" "Statistics on a random matrix"
+@timeit randmatstat(1000) "matrix_statistics_rand" "Statistics on a random matrix"
 
 
 function randmatstat_ones(t)
@@ -182,7 +201,7 @@ end
 
 ## largish random number gen & matmul ##
 
-@timeit rand(1000,1000)*rand(1000,1000) "matrix_multiply" "Multiplication of random matrices"
+@timeit rand(1000,1000)*rand(1000,1000) "matrix_multiply_rand" "Multiplication of random matrices"
 
 @timeit ones(1000,1000)*ones(1000,1000) "matrix_multiply_ones" "Multiplication of ones matrices"
 

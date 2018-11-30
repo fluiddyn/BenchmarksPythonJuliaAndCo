@@ -1,20 +1,20 @@
-import numpy as np
-
 from time import time
 
-# fibonacci #
+import numpy as np
+
+from randomgen import RandomGenerator
+rnd = RandomGenerator()
 
 
 def fib(n: int):
+    """fibonacci"""
     if n < 2:
         return n
     return fib(n - 1) + fib(n - 2)
 
 
-# quicksort #
-
-
 def qsort_kernel(a, lo, hi):
+    """quicksort"""
     i = lo
     j = hi
     while i < hi:
@@ -35,9 +35,30 @@ def qsort_kernel(a, lo, hi):
     return a
 
 
-def matrix_statistics(t):
+def matrix_statistics_rand(t):
     n = 5
     randn = np.random.randn
+    matrix_power = np.linalg.matrix_power
+    v = np.zeros(t)
+    w = np.zeros(t)
+    for i in range(t):
+        a = randn(n, n)
+        b = randn(n, n)
+        c = randn(n, n)
+        d = randn(n, n)
+        P = np.concatenate((a, b, c, d), axis=1)
+        Q = np.concatenate(
+            (np.concatenate((a, b), axis=1), np.concatenate((c, d), axis=1)),
+            axis=0,
+        )
+        v[i] = np.trace(matrix_power(P.T @ P, 4))
+        w[i] = np.trace(matrix_power(Q.T @ Q, 4))
+    return (np.std(v) / np.mean(v), np.std(w) / np.mean(w))
+
+
+def matrix_statistics_randomgen(t):
+    n = 5
+    randn = rnd.randn
     matrix_power = np.linalg.matrix_power
     v = np.zeros(t)
     w = np.zeros(t)
@@ -73,7 +94,7 @@ def matrix_statistics_ones(t):
     return (np.std(v) / np.mean(v), np.std(w) / np.mean(w))
 
 
-def matrix_multiply(n):
+def matrix_multiply_rand(n):
     A = np.random.rand(n, n)
     B = np.random.rand(n, n)
     return A @ B
@@ -85,8 +106,18 @@ def matrix_multiply_ones(n):
     return A @ B
 
 
+def matrix_multiply_randomgen(n):
+    A = rnd.rand(n, n)
+    B = rnd.rand(n, n)
+    return A @ B
+
+
 def bench_random(n: int):
     return np.random.rand(n, n)
+
+
+def bench_random_randomgen(n: int):
+    return rnd.rand(n, n)
 
 
 def broadcast(a):
@@ -151,19 +182,33 @@ def pisum_vec():
     return s/n
 
 
-def parse_int(t):
-    for i in range(t):
-        n = np.random.randint(0, 2 ** 32 - 1)
-        s = hex(n)
-        m = int(s, 16)
+def parse_int_rand(t):
+    numbers = np.random.randint(0, 2 ** 32 - 1, t)
+    for n in numbers:
+        m = int(hex(n), 16)
+        assert m == n
+    return n
+
+
+def parse_int(numbers):
+    for n in numbers:
+        m = int(hex(n), 16)
+        assert m == n
+    return n
+
+
+def parse_int_randomgen(t):
+    numbers = rnd.random_uintegers(t, bits=32)
+    for n in numbers:
+        m = int(hex(n), 16)
         assert m == n
     return n
 
 
 def printfd(t):
     with open("/dev/null", "w") as file:
-        for i in range(1, t):
-            file.write(f"{i:d} {i+1:d}\n")
+        for i in range(t):
+            file.write("{:d} {:d}\n".format(i, i+1))
 
 
 def print_perf(name, time):
@@ -187,7 +232,27 @@ if __name__ == "__main__":
     tmin = float("inf")
     for i in range(mintrials):
         t = time()
-        n = parse_int(1000)
+        n = parse_int_rand(1000)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("parse_integers_rand", tmin)
+
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        n = parse_int_randomgen(1000)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("parse_integers_randomgen", tmin)
+
+    tmin = float("inf")
+    for i in range(mintrials):
+        numbers = np.random.randint(0, 2 ** 32 - 1, 1000)
+        assert numbers.size == 1000
+        t = time()
+        n = parse_int(numbers)
         t = time() - t
         if t < tmin:
             tmin = t
@@ -243,16 +308,27 @@ if __name__ == "__main__":
             tmin = t
     print_perf("pisum_vec", tmin)
 
-    (s1, s2) = matrix_statistics(1000)
+    (s1, s2) = matrix_statistics_rand(1000)
     assert s1 > 0.5 and s1 < 1.0
     tmin = float("inf")
     for i in range(mintrials):
         t = time()
-        matrix_statistics(1000)
+        matrix_statistics_rand(1000)
         t = time() - t
         if t < tmin:
             tmin = t
-    print_perf("matrix_statistics", tmin)
+    print_perf("matrix_statistics_rand_numpy", tmin)
+
+    (s1, s2) = matrix_statistics_randomgen(1000)
+    assert s1 > 0.5 and s1 < 1.0
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        matrix_statistics_randomgen(1000)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("matrix_statistics_rand", tmin)
 
     (s1, s2) = matrix_statistics_ones(1000)
     tmin = float("inf")
@@ -269,12 +345,12 @@ if __name__ == "__main__":
     tmin = float("inf")
     for i in range(mintrials):
         t = time()
-        C = matrix_multiply(1000)
+        C = matrix_multiply_rand(1000)
         assert C[0, 0] >= 0
         t = time() - t
         if t < tmin:
             tmin = t
-    print_perf("matrix_multiply", tmin)
+    print_perf("matrix_multiply_rand_numpy", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):
@@ -289,8 +365,27 @@ if __name__ == "__main__":
     tmin = float("inf")
     for i in range(mintrials):
         t = time()
-        C = bench_random(1000)
+        C = matrix_multiply_randomgen(1000)
         assert C[0, 0] >= 0
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("matrix_multiply_rand", tmin)
+
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        C = bench_random(1000)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("random_numpy", tmin)
+
+    mintrials = 100
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        C = bench_random_randomgen(1000)
         t = time() - t
         if t < tmin:
             tmin = t
@@ -306,6 +401,7 @@ if __name__ == "__main__":
             tmin = t
     print_perf("broadcast", tmin)
 
+    mintrials = 10
     tmin = float("inf")
     for i in range(mintrials):
         a = np.ones((1000, 1000))
