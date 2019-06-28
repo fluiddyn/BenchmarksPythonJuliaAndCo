@@ -1,0 +1,3 @@
+pythran
+transonic >= 0.2.4
+randomgen

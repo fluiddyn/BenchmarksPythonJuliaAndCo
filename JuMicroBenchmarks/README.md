@@ -2,10 +2,10 @@
 
 See the [Julia web page](https://julialang.org/benchmarks/).
 
-For the Pythran benchmark, we use FluidPythran. Install with:
+Install the dependencies with
 
 ```
-pip install pythran fluidpythran
+pip install -r requirements.txt
 ```
 
 Then, to run the benchmark:

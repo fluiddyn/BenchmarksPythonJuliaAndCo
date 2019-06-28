@@ -198,7 +198,7 @@ def parse_int(numbers):
 
 
 def parse_int_randomgen(t):
-    numbers = rnd.random_uintegers(t, bits=32)
+    numbers = rnd.randint(0, 2 ** 32 - 1, t, dtype="uint32")
     for n in numbers:
         m = int(hex(n), 16)
         assert m == n

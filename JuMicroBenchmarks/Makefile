@@ -20,6 +20,6 @@ clean_output_pythran:
 	rm -f output_pythran.txt
 
 cleancache:
-	fluidpythran -cc perf_pythran.py -f
+	transonic -cc perf_pythran.py -f
 
 cleanall: clean cleancache

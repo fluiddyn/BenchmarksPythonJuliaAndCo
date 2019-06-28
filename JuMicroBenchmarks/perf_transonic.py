@@ -1,72 +1,60 @@
-from time import time, sleep
-import sys
-
 import numpy as np
 
-# pythran import numpy as np
-
-from fluidpythran import (
-    cachedjit,
-    used_by_cachedjit,
-    pythran_def,
-    wait_for_all_extensions,
-    set_pythranize_at_import
-)
+from transonic import jit, wait_for_all_extensions
 
 from perf_py import (
     print_perf,
     fib,
     qsort_kernel,
     matrix_statistics_rand,
+    matrix_multiply_randomgen,
     matrix_statistics_ones,
+    matrix_statistics_randomgen,
     matrix_multiply_rand,
     matrix_multiply_ones,
     bench_random,
+    bench_random_randomgen,
     pisum,
     pisum_vec,
     parse_int,
     parse_int_rand,
+    parse_int_randomgen,
     printfd,
-    abs2,
-    mandel,
+    # abs2,
+    # mandel,
     mandelperf,
     mandelperf2,
     broadcast,
     broadcast_inplace,
 )
 
-set_pythranize_at_import()
+args_jit = dict(native=True, xsimd=True)
 
-fib_pythran = pythran_def(fib)
-fib = cachedjit(fib)
+fib = jit(fib, **args_jit)
 
-qsort_kernel = cachedjit(qsort_kernel)
+qsort_kernel = jit(qsort_kernel, **args_jit)
 
-matrix_statistics_rand = cachedjit(matrix_statistics_rand)
-matrix_statistics_ones = cachedjit(matrix_statistics_ones)
+matrix_statistics_rand = jit(matrix_statistics_rand, **args_jit)
+matrix_statistics_ones = jit(matrix_statistics_ones, **args_jit)
 
-matrix_multiply_rand = cachedjit(matrix_multiply_rand)
-matrix_multiply_ones = cachedjit(matrix_multiply_ones)
-broadcast = cachedjit(broadcast)
-broadcast_inplace = cachedjit(broadcast_inplace)
-bench_random = cachedjit(bench_random)
+matrix_multiply_rand = jit(matrix_multiply_rand, **args_jit)
+matrix_multiply_ones = jit(matrix_multiply_ones, **args_jit)
+broadcast = jit(broadcast, **args_jit)
+broadcast_inplace = jit(broadcast_inplace, **args_jit)
+bench_random = jit(bench_random, **args_jit)
 
-pisum = cachedjit(pisum)
-pisum_vec = cachedjit(pisum_vec)
+pisum = jit(pisum, **args_jit)
+pisum_vec = jit(pisum_vec, **args_jit)
 
-used_by_cachedjit("mandelperf")(abs2)
-used_by_cachedjit("mandelperf")(mandel)
-mandelperf = cachedjit(mandelperf)
+mandelperf = jit(mandelperf, **args_jit)
 
-used_by_cachedjit("mandelperf2")(abs2)
-used_by_cachedjit("mandelperf2")(mandel)
-mandelperf2 = cachedjit(mandelperf2)
+mandelperf2 = jit(mandelperf2, **args_jit)
 
-parse_int = cachedjit(parse_int)
-parse_int_rand = cachedjit(parse_int_rand)
+parse_int = jit(parse_int, **args_jit)
+parse_int_rand = jit(parse_int_rand, **args_jit)
 
-# Pythran does not support format and f-strings
-# printfd = cachedjit(printfd)
+# Pythran does not support format and f-strings :-(
+# printfd = jit(printfd)
 
 
 def warmup():
@@ -92,40 +80,55 @@ def warmup():
 
 if __name__ == "__main__":
 
+    import sys
+    from time import time
+
     if "warmup" in sys.argv:
         warmup()
+        print("wait_for_all_extensions")
         wait_for_all_extensions()
         sys.exit()
 
-    from randomgen import RandomGenerator
-    rnd = RandomGenerator()
+    mintrials = 10
 
-    mintrials = 10000
-
-    n = 20
-    assert fib(n) == 6765
+    assert fib(20) == 6765
     tmin = float("inf")
     for i in range(mintrials):
         t = time()
-        f = fib(n)
+        f = fib(20)
         t = time() - t
         if t < tmin:
             tmin = t
-    print("fib with fluidpythran:")
     print_perf("recursion_fibonacci", tmin)
 
-    assert fib_pythran(n) == 6765
     tmin = float("inf")
     for i in range(mintrials):
         t = time()
-        f = fib_pythran(n)
+        n = parse_int_rand(1000)
         t = time() - t
         if t < tmin:
             tmin = t
-    print("Now fib without fluidpythran:")
-    print_perf("recursion_fibonacci_pythran", tmin)
+    print_perf("parse_integers_rand", tmin)
 
-    mintrials = 1000
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        n = parse_int_randomgen(1000)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("parse_integers_randomgen", tmin)
+
+    tmin = float("inf")
+    for i in range(mintrials):
+        numbers = np.random.randint(0, 2 ** 32 - 1, 1000).astype(np.uint32)
+        assert numbers.size == 1000
+        t = time()
+        n = parse_int(numbers)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("parse_integers", tmin)
 
     assert sum(mandelperf()) == 14791
     tmin = float("inf")
@@ -135,7 +138,7 @@ if __name__ == "__main__":
         t = time() - t
         if t < tmin:
             tmin = t
-    print_perf("mandelbrot0", tmin)
+    print_perf("mandelbrot", tmin)
 
     assert sum(mandelperf2()) == 14791
     tmin = float("inf")
@@ -145,9 +148,7 @@ if __name__ == "__main__":
         t = time() - t
         if t < tmin:
             tmin = t
-    print_perf("mandelbrot", tmin)
-
-    mintrials = 100
+    print_perf("mandelbrot2", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):
@@ -179,6 +180,28 @@ if __name__ == "__main__":
             tmin = t
     print_perf("pisum_vec", tmin)
 
+    (s1, s2) = matrix_statistics_rand(1000)
+    assert s1 > 0.5 and s1 < 1.0
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        matrix_statistics_rand(1000)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("matrix_statistics_rand_numpy", tmin)
+
+    (s1, s2) = matrix_statistics_randomgen(1000)
+    assert s1 > 0.5 and s1 < 1.0
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        matrix_statistics_randomgen(1000)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("matrix_statistics_rand", tmin)
+
     (s1, s2) = matrix_statistics_ones(1000)
     tmin = float("inf")
     for i in range(mintrials):
@@ -188,6 +211,18 @@ if __name__ == "__main__":
         if t < tmin:
             tmin = t
     print_perf("matrix_statistics_ones", tmin)
+
+    mintrials = 10
+
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        C = matrix_multiply_rand(1000)
+        assert C[0, 0] >= 0
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("matrix_multiply_rand_numpy", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):
@@ -200,61 +235,9 @@ if __name__ == "__main__":
     print_perf("matrix_multiply_ones", tmin)
 
     tmin = float("inf")
-    a = np.ones((1000, 1000))
     for i in range(mintrials):
         t = time()
-        broadcast(a)
-        t = time() - t
-        if t < tmin:
-            tmin = t
-    print_perf("broadcast", tmin)
-
-    tmin = float("inf")
-    for i in range(mintrials):
-        a = np.ones((1000, 1000))
-        t = time()
-        broadcast_inplace(a)
-        t = time() - t
-        if t < tmin:
-            tmin = t
-    print_perf("broadcast_inplace", tmin)
-
-    mintrials = 20
-
-    tmin = float("inf")
-    for i in range(mintrials):
-        t = time()
-        n = parse_int_rand(1000)
-        t = time() - t
-        if t < tmin:
-            tmin = t
-    print_perf("parse_integers_rand", tmin)
-
-    tmin = float("inf")
-    for i in range(mintrials):
-        numbers = rnd.random_uintegers(1000, bits=32)
-        t = time()
-        n = parse_int(numbers)
-        t = time() - t
-        if t < tmin:
-            tmin = t
-    print_perf("parse_integers", tmin)
-
-    (s1, s2) = matrix_statistics_rand(1000)
-    assert s1 > 0.5 and s1 < 1.0
-    tmin = float("inf")
-    for i in range(mintrials):
-        t = time()
-        matrix_statistics_rand(1000)
-        t = time() - t
-        if t < tmin:
-            tmin = t
-    print_perf("matrix_statistics_rand", tmin)
-
-    tmin = float("inf")
-    for i in range(mintrials):
-        t = time()
-        C = matrix_multiply_rand(1000)
+        C = matrix_multiply_randomgen(1000)
         assert C[0, 0] >= 0
         t = time() - t
         if t < tmin:
@@ -265,11 +248,41 @@ if __name__ == "__main__":
     for i in range(mintrials):
         t = time()
         C = bench_random(1000)
-        assert C[0, 0] >= 0
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("random_numpy", tmin)
+
+    mintrials = 100
+    tmin = float("inf")
+    for i in range(mintrials):
+        t = time()
+        C = bench_random_randomgen(1000)
         t = time() - t
         if t < tmin:
             tmin = t
     print_perf("random", tmin)
+
+    tmin = float("inf")
+    a = np.ones((1000, 1000))
+    for i in range(mintrials):
+        t = time()
+        broadcast(a)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("broadcast", tmin)
+
+    mintrials = 10
+    tmin = float("inf")
+    for i in range(mintrials):
+        a = np.ones((1000, 1000))
+        t = time()
+        broadcast_inplace(a)
+        t = time() - t
+        if t < tmin:
+            tmin = t
+    print_perf("broadcast_inplace", tmin)
 
     tmin = float("inf")
     for i in range(mintrials):
