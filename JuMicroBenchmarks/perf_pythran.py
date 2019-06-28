@@ -1,236 +1,60 @@
-from time import time
-
 import numpy as np
 
 from transonic import jit, wait_for_all_extensions
 
-from randomgen import RandomGenerator
+from perf_py import (
+    print_perf,
+    fib,
+    qsort_kernel,
+    matrix_statistics_rand,
+    matrix_multiply_randomgen,
+    matrix_statistics_ones,
+    matrix_statistics_randomgen,
+    matrix_multiply_rand,
+    matrix_multiply_ones,
+    bench_random,
+    bench_random_randomgen,
+    pisum,
+    pisum_vec,
+    parse_int,
+    parse_int_rand,
+    parse_int_randomgen,
+    printfd,
+    # abs2,
+    # mandel,
+    mandelperf,
+    mandelperf2,
+    broadcast,
+    broadcast_inplace,
+)
 
-rnd = RandomGenerator()
+args_jit = dict(native=True, xsimd=True)
 
+fib = jit(fib, **args_jit)
 
-@jit
-def fib(n: int):
-    """fibonacci"""
-    if n < 2:
-        return n
-    return fib(n - 1) + fib(n - 2)
+qsort_kernel = jit(qsort_kernel, **args_jit)
 
+matrix_statistics_rand = jit(matrix_statistics_rand, **args_jit)
+matrix_statistics_ones = jit(matrix_statistics_ones, **args_jit)
 
-@jit
-def qsort_kernel(a, lo, hi):
-    """quicksort"""
-    i = lo
-    j = hi
-    while i < hi:
-        pivot = a[(lo + hi) // 2]
-        while i <= j:
-            while a[i] < pivot:
-                i += 1
-            while a[j] > pivot:
-                j -= 1
-            if i <= j:
-                a[i], a[j] = a[j], a[i]
-                i += 1
-                j -= 1
-        if lo < j:
-            qsort_kernel(a, lo, j)
-        lo = i
-        j = hi
-    return a
+matrix_multiply_rand = jit(matrix_multiply_rand, **args_jit)
+matrix_multiply_ones = jit(matrix_multiply_ones, **args_jit)
+broadcast = jit(broadcast, **args_jit)
+broadcast_inplace = jit(broadcast_inplace, **args_jit)
+bench_random = jit(bench_random, **args_jit)
 
+pisum = jit(pisum, **args_jit)
+pisum_vec = jit(pisum_vec, **args_jit)
 
-@jit
-def matrix_statistics_rand(t):
-    n = 5
-    randn = np.random.randn
-    matrix_power = np.linalg.matrix_power
-    v = np.zeros(t)
-    w = np.zeros(t)
-    for i in range(t):
-        a = randn(n, n)
-        b = randn(n, n)
-        c = randn(n, n)
-        d = randn(n, n)
-        P = np.concatenate((a, b, c, d), axis=1)
-        Q = np.concatenate(
-            (np.concatenate((a, b), axis=1), np.concatenate((c, d), axis=1)),
-            axis=0,
-        )
-        v[i] = np.trace(matrix_power(P.T @ P, 4))
-        w[i] = np.trace(matrix_power(Q.T @ Q, 4))
-    return (np.std(v) / np.mean(v), np.std(w) / np.mean(w))
+mandelperf = jit(mandelperf, **args_jit)
 
+mandelperf2 = jit(mandelperf2, **args_jit)
 
-def matrix_statistics_randomgen(t):
-    n = 5
-    randn = rnd.randn
-    matrix_power = np.linalg.matrix_power
-    v = np.zeros(t)
-    w = np.zeros(t)
-    for i in range(t):
-        a = randn(n, n)
-        b = randn(n, n)
-        c = randn(n, n)
-        d = randn(n, n)
-        P = np.concatenate((a, b, c, d), axis=1)
-        Q = np.concatenate(
-            (np.concatenate((a, b), axis=1), np.concatenate((c, d), axis=1)),
-            axis=0,
-        )
-        v[i] = np.trace(matrix_power(P.T @ P, 4))
-        w[i] = np.trace(matrix_power(Q.T @ Q, 4))
-    return (np.std(v) / np.mean(v), np.std(w) / np.mean(w))
+parse_int = jit(parse_int, **args_jit)
+parse_int_rand = jit(parse_int_rand, **args_jit)
 
-
-@jit
-def matrix_statistics_ones(t):
-    n = 5
-    matrix_power = np.linalg.matrix_power
-    v = np.zeros(t)
-    w = np.zeros(t)
-    for i in range(t):
-        a = b = c = d = np.ones((n, n))
-        P = np.concatenate((a, b, c, d), axis=1)
-        Q = np.concatenate(
-            (np.concatenate((a, b), axis=1), np.concatenate((c, d), axis=1)),
-            axis=0,
-        )
-        v[i] = np.trace(matrix_power(P.T @ P, 4))
-        w[i] = np.trace(matrix_power(Q.T @ Q, 4))
-    return (np.std(v) / np.mean(v), np.std(w) / np.mean(w))
-
-
-@jit
-def matrix_multiply_rand(n):
-    A = np.random.rand(n, n)
-    B = np.random.rand(n, n)
-    return A @ B
-
-
-@jit
-def matrix_multiply_ones(n):
-    A = np.ones((n, n))
-    B = np.ones((n, n))
-    return A @ B
-
-
-def matrix_multiply_randomgen(n):
-    A = rnd.rand(n, n)
-    B = rnd.rand(n, n)
-    return A @ B
-
-
-@jit
-def bench_random(n: int):
-    return np.random.rand(n, n)
-
-
-def bench_random_randomgen(n: int):
-    return rnd.rand(n, n)
-
-
-@jit
-def broadcast(a):
-    return 10 * (2 * a ** 2 + 4 * a ** 3) + 2 / a
-
-
-@jit
-def broadcast_inplace(a):
-    a[:] = 10 * (2 * a ** 2 + 4 * a ** 3) + 2 / a
-
-
-## mandelbrot ##
-
-
-def abs2(z):
-    return z.real * z.real + z.imag * z.imag
-
-
-def mandel(z):
-    maxiter = 80
-    c = z
-    for n in range(maxiter):
-        if abs2(z) > 4:
-            return n
-        z = z * z + c
-    return maxiter
-
-
-@jit
-def mandelperf():
-    r1 = [-2.0 + 0.1 * i for i in range(26)]
-    r2 = [-1.0 + 0.1 * i for i in range(21)]
-    return [mandel(complex(r, i)) for r in r1 for i in r2]
-
-
-@jit
-def mandelperf2():
-    r1 = -2.0 + 0.1 * np.arange(26)
-    r2 = -1.0 + 0.1 * np.arange(21)
-    result = np.empty(r1.size * r2.size)
-    ind = 0
-    for r in r1:
-        for i in r2:
-            result[ind] = mandel(complex(r, i))
-            ind += 1
-
-    return result
-
-
-@jit
-def pisum():
-    sum = 0.0
-    n = 500
-    for j in range(n):
-        for k in range(1, 10001):
-            sum += 1.0 / (k * k)
-    return sum / n
-
-
-@jit
-def pisum_vec():
-    n = 500
-    s = 0.0
-    a = np.arange(1, 10001)
-    for j in range(500):
-        s += np.sum(1.0 / (a ** 2))
-    return s / n
-
-
-@jit
-def parse_int_rand(t):
-    numbers = np.random.randint(0, 2 ** 32 - 1, t)
-    for n in numbers:
-        m = int(hex(n), 16)
-        assert m == n
-    return n
-
-
-@jit
-def parse_int(numbers):
-    for n in numbers:
-        m = int(hex(n), 16)
-        assert m == n
-    return n
-
-
-def parse_int_randomgen(t):
-    numbers = rnd.random_uintegers(t, bits=32)
-    for n in numbers:
-        m = int(hex(n), 16)
-        assert m == n
-    return n
-
-
-def printfd(t):
-    with open("/dev/null", "w") as file:
-        for i in range(t):
-            file.write("{:d} {:d}\n".format(i, i + 1))
-
-
-def print_perf(name, time):
-    print(f"transonic, {name:30s} {time * 1000:8.3f} ms", flush=True)
+# Pythran does not support format and f-strings :-(
+# printfd = jit(printfd)
 
 
 def warmup():
@@ -257,6 +81,7 @@ def warmup():
 if __name__ == "__main__":
 
     import sys
+    from time import time
 
     if "warmup" in sys.argv:
         warmup()
@@ -296,7 +121,7 @@ if __name__ == "__main__":
 
     tmin = float("inf")
     for i in range(mintrials):
-        numbers = np.random.randint(0, 2 ** 32 - 1, 1000)
+        numbers = np.random.randint(0, 2 ** 32 - 1, 1000).astype(np.uint32)
         assert numbers.size == 1000
         t = time()
         n = parse_int(numbers)
